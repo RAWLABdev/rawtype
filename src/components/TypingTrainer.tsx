@@ -17,6 +17,7 @@ export default function TypingTrainer() {
   const [bestScore, setBestScore] = useState(0);
   const [xp, setXp] = useState(0);
   const [completedRoutes, setCompletedRoutes] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   const level = levels[levelIndex];
 
@@ -28,10 +29,12 @@ export default function TypingTrainer() {
 
   const accuracy = Math.max(
     0,
-    Math.round((currentWord / (currentWord + errors || 1)) * 100)
+    Math.round((currentWord / (currentWord + errors || 1)) * 100),
   );
 
   const wpm = seconds > 0 ? Math.round((currentWord / seconds) * 60) : 0;
+
+  const progressPercent = Math.round((currentWord / words.length) * 100);
 
   useEffect(() => {
     if (!started || completed) return;
@@ -49,6 +52,7 @@ export default function TypingTrainer() {
     setBestScore(getBestScore(levelName));
     setXp(progress.xp);
     setCompletedRoutes(progress.completedRoutes);
+    setStreak(progress.streak);
   };
 
   const reset = () => {
@@ -75,6 +79,7 @@ export default function TypingTrainer() {
 
     setXp(progress.xp);
     setCompletedRoutes(progress.completedRoutes);
+    setStreak(progress.streak);
     setShowCompleteModal(true);
   };
 
@@ -139,19 +144,38 @@ export default function TypingTrainer() {
           Current level
         </p>
 
+        <p className="mt-2 text-sm uppercase tracking-widest text-green-600">
+          {level.category}
+        </p>
+
         <h2 className="mt-2 text-2xl font-black text-green-400 sm:text-4xl">
           {level.name}
         </h2>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6 sm:text-base">
+      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 sm:text-base lg:grid-cols-7">
         <div className="border border-green-400/40 p-3">⏱ {seconds}s</div>
         <div className="border border-green-400/40 p-3">❌ {errors}</div>
         <div className="border border-green-400/40 p-3">⚡ {wpm} WPM</div>
         <div className="border border-green-400/40 p-3">🏆 {bestScore}</div>
         <div className="border border-green-400/40 p-3">XP {xp}</div>
+        <div className="border border-green-400/40 p-3">🔥 {streak}</div>
         <div className="border border-green-400/40 p-3">
           ROUTES {completedRoutes}
+        </div>
+      </div>
+
+      <div className="mb-8">
+        <div className="mb-2 flex justify-between text-xs uppercase tracking-widest text-green-600">
+          <span>Progress</span>
+          <span>{progressPercent}%</span>
+        </div>
+
+        <div className="h-2 border border-green-400">
+          <div
+            className="h-full bg-green-400 transition-all"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
       </div>
 
@@ -207,8 +231,26 @@ export default function TypingTrainer() {
 
               <div className="border border-green-400/40 p-3">XP {xp}</div>
 
-              <div className="col-span-2 border border-green-400/40 p-3">
+              <div className="border border-green-400/40 p-3">
+                Streak {streak}
+              </div>
+
+              <div className="border border-green-400/40 p-3">
                 Routes {completedRoutes}
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <div className="mb-2 flex justify-between text-xs uppercase tracking-widest text-green-600">
+                <span>Progress</span>
+                <span>{progressPercent}%</span>
+              </div>
+
+              <div className="h-2 border border-green-400">
+                <div
+                  className="h-full bg-green-400 transition-all"
+                  style={{ width: `${progressPercent}%` }}
+                />
               </div>
             </div>
 
