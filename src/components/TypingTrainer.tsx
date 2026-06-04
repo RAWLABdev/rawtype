@@ -5,6 +5,7 @@ import { levels } from "@/src/data/levels";
 import { getBestScore, saveBestScore } from "@/src/lib/storage";
 import { addRouteXP, getProgress } from "@/src/lib/progress";
 import { passages } from "@/src/data/passages";
+import { getDailyRoute } from "@/src/lib/dailyRoute";
 
 export default function TypingTrainer() {
   const [levelIndex, setLevelIndex] = useState(0);
@@ -144,6 +145,16 @@ export default function TypingTrainer() {
     reset();
   };
 
+  const generateDailyRoute = () => {
+  const daily = getDailyRoute();
+
+  setCustomText(daily.text);
+  setCustomTitle(`Daily Route / ${daily.title}`);
+  setCustomCategory(daily.category.toUpperCase());
+  syncLocalProgress(daily.title);
+  reset();
+};
+
   return (
     <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
@@ -153,6 +164,12 @@ export default function TypingTrainer() {
         >
           🎲 Random Route
         </button>
+        <button
+  onClick={generateDailyRoute}
+  className="mt-3 w-full border border-yellow-400 bg-yellow-400/10 px-4 py-3 text-sm font-bold uppercase tracking-widest text-yellow-400 hover:bg-yellow-400 hover:text-black"
+>
+  ☀️ Daily Route
+</button>
       </div>
 
       <div className="mb-8 flex flex-wrap gap-3">
