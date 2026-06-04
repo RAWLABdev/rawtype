@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { levels } from "@/src/data/levels";
 import { getBestScore, saveBestScore } from "@/src/lib/storage";
 import { addRouteXP, getProgress } from "@/src/lib/progress";
+import { passages } from "@/src/data/passages";
 
 export default function TypingTrainer() {
   const [levelIndex, setLevelIndex] = useState(0);
@@ -19,11 +20,19 @@ export default function TypingTrainer() {
   const [completedRoutes, setCompletedRoutes] = useState(0);
   const [streak, setStreak] = useState(0);
 
+  const [customText, setCustomText] = useState<string | null>(null);
+  const [customTitle, setCustomTitle] = useState<string | null>(null);
+  const [customCategory, setCustomCategory] = useState<string | null>(null);
+
   const level = levels[levelIndex];
 
+  const activeText = customText ?? level.text;
+  const activeTitle = customTitle ?? level.name;
+  const activeCategory = customCategory ?? level.category;
+
   const words = useMemo(() => {
-    return level.text.trim().split(/\s+/);
-  }, [level.text]);
+    return activeText.trim().split(/\s+/);
+  }, [activeText]);
 
   const completed = currentWord >= words.length;
 
@@ -68,10 +77,11 @@ export default function TypingTrainer() {
     const finalWpm =
       seconds > 0 ? Math.round((nextCorrectWords / seconds) * 60) : 0;
 
-    const currentBest = getBestScore(level.name);
+    const scoreKey = customTitle ?? level.name;
+    const currentBest = getBestScore(scoreKey);
 
     if (finalWpm > currentBest) {
-      saveBestScore(level.name, finalWpm);
+      saveBestScore(scoreKey, finalWpm);
       setBestScore(finalWpm);
     }
 
@@ -86,6 +96,9 @@ export default function TypingTrainer() {
   const handleLevelChange = (index: number) => {
     const nextLevel = levels[index];
 
+    setCustomText(null);
+    setCustomTitle(null);
+    setCustomCategory(null);
     setLevelIndex(index);
     syncLocalProgress(nextLevel.name);
     reset();
@@ -96,7 +109,7 @@ export default function TypingTrainer() {
 
     if (!started) {
       setStarted(true);
-      syncLocalProgress(level.name);
+      syncLocalProgress(customTitle ?? level.name);
     }
 
     setInput(value);
@@ -121,15 +134,34 @@ export default function TypingTrainer() {
     setInput("");
   };
 
+  const generateRandomRoute = () => {
+    const random = passages[Math.floor(Math.random() * passages.length)];
+
+    setCustomText(random.text);
+    setCustomTitle(random.title);
+    setCustomCategory(random.category.toUpperCase());
+    syncLocalProgress(random.title);
+    reset();
+  };
+
   return (
     <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div className="mb-6">
+        <button
+          onClick={generateRandomRoute}
+          className="w-full border border-cyan-400 bg-cyan-400/10 px-4 py-3 text-sm font-bold uppercase tracking-widest text-cyan-400 hover:bg-cyan-400 hover:text-black"
+        >
+          🎲 Random Route
+        </button>
+      </div>
+
       <div className="mb-8 flex flex-wrap gap-3">
         {levels.map((item, index) => (
           <button
             key={item.id}
             onClick={() => handleLevelChange(index)}
             className={`rounded-none border px-3 py-2 text-xs font-bold uppercase tracking-widest transition sm:px-4 sm:text-sm ${
-              levelIndex === index
+              levelIndex === index && !customText
                 ? "border-green-400 bg-green-400 text-black"
                 : "border-green-400 text-green-400 hover:bg-green-400 hover:text-black"
             }`}
@@ -141,28 +173,23 @@ export default function TypingTrainer() {
 
       <div className="mb-6 border border-green-400/40 p-4">
         <p className="text-xs uppercase tracking-[0.3em] text-green-600">
-          Current level
+          Current route
         </p>
 
         <p className="mt-2 text-sm uppercase tracking-widest text-green-600">
-          {level.category}
+          {activeCategory}
         </p>
 
         <h2 className="mt-2 text-2xl font-black text-green-400 sm:text-4xl">
-          {level.name}
+          {activeTitle}
         </h2>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 sm:text-base lg:grid-cols-7">
-        <div className="border border-green-400/40 p-3">⏱ {seconds}s</div>
-        <div className="border border-green-400/40 p-3">❌ {errors}</div>
-        <div className="border border-green-400/40 p-3">⚡ {wpm} WPM</div>
-        <div className="border border-green-400/40 p-3">🏆 {bestScore}</div>
-        <div className="border border-green-400/40 p-3">XP {xp}</div>
+      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:text-base">
+        <div className="border border-green-400/40 p-3">⚡ {wpm}</div>
+        <div className="border border-green-400/40 p-3">🎯 {accuracy}%</div>
         <div className="border border-green-400/40 p-3">🔥 {streak}</div>
-        <div className="border border-green-400/40 p-3">
-          ROUTES {completedRoutes}
-        </div>
+        <div className="border border-green-400/40 p-3">🏆 {bestScore}</div>
       </div>
 
       <div className="mb-8">
@@ -179,7 +206,7 @@ export default function TypingTrainer() {
         </div>
       </div>
 
-      <div className="mb-8 w-full overflow-hidden border border-green-400/40 bg-black/60 p-4 sm:p-6">
+      <div className="mb-8 h-[340px] overflow-y-auto border border-green-400/40 bg-black/60 p-4 sm:p-6">
         <div className="flex flex-wrap gap-x-3 gap-y-4 text-xl leading-relaxed sm:text-2xl md:text-3xl">
           {words.map((word, index) => (
             <span
