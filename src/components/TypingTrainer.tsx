@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { levels } from "@/src/data/levels";
 import { getBestScore, saveBestScore } from "@/src/lib/storage";
+import { addRouteXP, getProgress } from "@/src/lib/progress";
 
 export default function TypingTrainer() {
   const [levelIndex, setLevelIndex] = useState(0);
@@ -11,6 +12,10 @@ export default function TypingTrainer() {
   const [errors, setErrors] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [started, setStarted] = useState(false);
+
+  const [bestScore, setBestScore] = useState(0);
+  const [xp, setXp] = useState(0);
+  const [completedRoutes, setCompletedRoutes] = useState(0);
 
   const level = levels[levelIndex];
 
@@ -27,8 +32,6 @@ export default function TypingTrainer() {
 
   const wpm = seconds > 0 ? Math.round((currentWord / seconds) * 60) : 0;
 
-  const bestScore = Number(getBestScore(level.name) || 0);
-
   useEffect(() => {
     if (!started || completed) return;
 
@@ -38,6 +41,14 @@ export default function TypingTrainer() {
 
     return () => clearInterval(interval);
   }, [started, completed]);
+
+  const syncLocalProgress = (levelName: string) => {
+    const progress = getProgress();
+
+    setBestScore(getBestScore(levelName));
+    setXp(progress.xp);
+    setCompletedRoutes(progress.completedRoutes);
+  };
 
   const reset = () => {
     setInput("");
@@ -51,21 +62,34 @@ export default function TypingTrainer() {
     const finalWpm =
       seconds > 0 ? Math.round((nextCorrectWords / seconds) * 60) : 0;
 
-    const currentBest = Number(getBestScore(level.name) || 0);
+    const currentBest = getBestScore(level.name);
 
     if (finalWpm > currentBest) {
       saveBestScore(level.name, finalWpm);
+      setBestScore(finalWpm);
     }
+
+    const progress = addRouteXP(50);
+
+    setXp(progress.xp);
+    setCompletedRoutes(progress.completedRoutes);
   };
 
   const handleLevelChange = (index: number) => {
+    const nextLevel = levels[index];
+
     setLevelIndex(index);
+    syncLocalProgress(nextLevel.name);
     reset();
   };
 
   const handleChange = (value: string) => {
     if (completed) return;
-    if (!started) setStarted(true);
+
+    if (!started) {
+      setStarted(true);
+      syncLocalProgress(level.name);
+    }
 
     setInput(value);
 
@@ -117,11 +141,15 @@ export default function TypingTrainer() {
         </h2>
       </div>
 
-      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4 sm:text-base">
+      <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-3 lg:grid-cols-6 sm:text-base">
         <div className="border border-green-400/40 p-3">⏱ {seconds}s</div>
         <div className="border border-green-400/40 p-3">❌ {errors}</div>
         <div className="border border-green-400/40 p-3">⚡ {wpm} WPM</div>
         <div className="border border-green-400/40 p-3">🏆 {bestScore}</div>
+        <div className="border border-green-400/40 p-3">XP {xp}</div>
+        <div className="border border-green-400/40 p-3">
+          ROUTES {completedRoutes}
+        </div>
       </div>
 
       <div className="mb-8 w-full overflow-hidden border border-green-400/40 bg-black/60 p-4 sm:p-6">
@@ -160,6 +188,8 @@ export default function TypingTrainer() {
           <p>Accuracy: {accuracy}%</p>
           <p>WPM: {wpm}</p>
           <p>Best Score: {bestScore} WPM</p>
+          <p>XP: {xp}</p>
+          <p>Routes: {completedRoutes}</p>
 
           <button
             onClick={reset}
