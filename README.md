@@ -1,36 +1,116 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# RAWTYPE_
 
-## Getting Started
+A retro-inspired typing trainer built for developers, climbers and lifelong learners.
 
-First, run the development server:
+RAWTYPE_ transforms typing practice into a progression system inspired by climbing routes. Improve your speed, accuracy and consistency while working through curated levels, daily routes and long-form passages.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Typing Practice
+- Real-time WPM tracking
+- Accuracy tracking
+- Error counter
+- Progress indicator
+- Best score per route
+- Retro high-contrast interface
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Route System
+- Progressive difficulty levels
+- Random Routes
+- Daily Route
+- Long-form passages
+- Programming-focused content
+- Technical and motivational texts
 
-## Learn More
+### Progression
+- XP system
+- Route completion tracking
+- Streak tracking
+- Personal records
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Next.js
+- React
+- TypeScript
+- TailwindCSS
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+txt src/ ├── components/ │   └── typing/ │       ├── CompleteModal.tsx │       ├── LevelSelector.tsx │       ├── ProgressBar.tsx │       ├── RouteActions.tsx │       ├── RouteHeader.tsx │       ├── StatsBar.tsx │       ├── TypingInput.tsx │       └── WordsPanel.tsx │ ├── data/ │   ├── levels.ts │   └── passages.ts │ ├── lib/ │   ├── dailyRoute.ts │   ├── progress.ts │   └── storage.ts │ └── utils/     └── formatTime.ts 
+
+---
+
+## Local Development
+
+Clone the repository:
+
+bash git clone https://github.com/RAWLABdev/rawtype.git 
+
+Install dependencies:
+
+bash npm install 
+
+Run development server:
+
+bash npm run dev 
+
+Open:
+
+txt http://localhost:3000 
+
+---
+
+## Roadmap
+
+### Phase 1
+- [x] Typing engine
+- [x] WPM tracking
+- [x] Accuracy tracking
+- [x] XP progression
+- [x] Random Route
+- [x] Daily Route
+- [x] Responsive layout
+- [x] Modular architecture
+
+### Phase 2
+- [ ] Time Attack (60 sec)
+- [ ] Time Attack (120 sec)
+- [ ] Auto-scroll to active word
+- [ ] Achievements
+- [ ] Statistics dashboard
+- [ ] Route history
+
+### Phase 3
+- [ ] User profiles
+- [ ] Cloud sync
+- [ ] Global leaderboard
+- [ ] RAWLAB route collections
+
+---
+
+## Philosophy
+
+RAWTYPE_ is not designed to be another typing test.
+
+It is designed to help people build consistency through repetition, focus and deliberate practice.
+
+Just like climbing:
+
+- One move at a time.
+- One route at a time.
+- One session at a time.
+
+---
+
+Built by RAWLAB_
+
+Movement • Code • Design
+
+https://rawlab.space
