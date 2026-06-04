@@ -12,6 +12,7 @@ export default function TypingTrainer() {
   const [errors, setErrors] = useState(0);
   const [seconds, setSeconds] = useState(0);
   const [started, setStarted] = useState(false);
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
 
   const [bestScore, setBestScore] = useState(0);
   const [xp, setXp] = useState(0);
@@ -56,6 +57,7 @@ export default function TypingTrainer() {
     setErrors(0);
     setSeconds(0);
     setStarted(false);
+    setShowCompleteModal(false);
   };
 
   const finishLevel = (nextCorrectWords: number) => {
@@ -73,6 +75,7 @@ export default function TypingTrainer() {
 
     setXp(progress.xp);
     setCompletedRoutes(progress.completedRoutes);
+    setShowCompleteModal(true);
   };
 
   const handleLevelChange = (index: number) => {
@@ -171,32 +174,55 @@ export default function TypingTrainer() {
         </div>
       </div>
 
-      {!completed ? (
-        <input
-          autoFocus
-          value={input}
-          onChange={(event) => handleChange(event.target.value)}
-          className="w-full border border-green-400 bg-black p-4 text-lg text-green-400 outline-none placeholder:text-green-800 sm:text-xl"
-          placeholder="Start typing..."
-        />
-      ) : (
-        <div className="space-y-4 border border-green-400 p-5">
-          <h2 className="text-3xl font-black text-green-400 sm:text-5xl">
-            LEVEL COMPLETE
-          </h2>
+      <input
+        autoFocus
+        value={input}
+        onChange={(event) => handleChange(event.target.value)}
+        disabled={showCompleteModal}
+        className="w-full border border-green-400 bg-black p-4 text-lg text-green-400 outline-none placeholder:text-green-800 disabled:opacity-40 sm:text-xl"
+        placeholder="Start typing..."
+      />
 
-          <p>Accuracy: {accuracy}%</p>
-          <p>WPM: {wpm}</p>
-          <p>Best Score: {bestScore} WPM</p>
-          <p>XP: {xp}</p>
-          <p>Routes: {completedRoutes}</p>
+      {showCompleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg border border-green-400 bg-black p-6 shadow-[0_0_40px_rgba(74,222,128,0.35)]">
+            <p className="mb-2 text-xs uppercase tracking-[0.4em] text-green-600">
+              RAWTYPE_
+            </p>
 
-          <button
-            onClick={reset}
-            className="border border-green-400 bg-green-400 px-6 py-3 font-bold text-black hover:bg-black hover:text-green-400"
-          >
-            TRY AGAIN
-          </button>
+            <h2 className="mb-6 text-3xl font-black text-green-400 sm:text-5xl">
+              LEVEL COMPLETE
+            </h2>
+
+            <div className="mb-6 grid grid-cols-2 gap-3 text-sm sm:text-base">
+              <div className="border border-green-400/40 p-3">
+                Accuracy {accuracy}%
+              </div>
+
+              <div className="border border-green-400/40 p-3">WPM {wpm}</div>
+
+              <div className="border border-green-400/40 p-3">
+                Best {bestScore}
+              </div>
+
+              <div className="border border-green-400/40 p-3">XP {xp}</div>
+
+              <div className="col-span-2 border border-green-400/40 p-3">
+                Routes {completedRoutes}
+              </div>
+            </div>
+
+            <p className="mb-6 text-sm text-green-700">
+              Route completed. Keep building rhythm, focus and precision.
+            </p>
+
+            <button
+              onClick={reset}
+              className="w-full border border-green-400 bg-green-400 px-6 py-3 font-bold text-black hover:bg-black hover:text-green-400"
+            >
+              TRY AGAIN
+            </button>
+          </div>
         </div>
       )}
     </section>
