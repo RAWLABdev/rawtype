@@ -17,8 +17,8 @@ export function WordsPanel({ words, currentWord }: WordsPanelProps) {
   }, [currentWord]);
 
   return (
-    <div className="mb-8 h-[220px] overflow-y-auto border border-green-400/40 bg-black/60 p-4 sm:h-[280px] sm:p-6 lg:h-[340px]">
-      <div className="flex flex-wrap gap-x-3 gap-y-4 text-xl leading-relaxed sm:text-2xl md:text-3xl">
+    <div className="mb-4 h-[180px] overflow-y-auto border border-green-400/40 bg-black/60 p-3 sm:h-[240px] sm:p-5 lg:h-[280px]">
+      <div className="flex flex-wrap gap-x-2 gap-y-3 text-lg leading-relaxed sm:text-xl md:text-2xl">
         {words.map((word, index) => (
           <span
             key={`${word}-${index}`}

@@ -216,13 +216,15 @@ export default function TypingTrainer() {
   };
 
   return (
-    <section className="mx-auto w-full max-w-5xl px-4 sm:px-6 lg:px-8">
-      <RouteActions
-        onRandomRoute={generateRandomRoute}
-        onDailyRoute={generateDailyRoute}
-      />
+    <section className="mx-auto w-full max-w-5xl px-3 sm:px-6 lg:px-8">
+      <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-[2fr_3fr]">
+  <RouteActions
+    onRandomRoute={generateRandomRoute}
+    onDailyRoute={generateDailyRoute}
+  />
 
-      <GameModeSelector gameMode={gameMode} onChange={handleGameModeChange} />
+  <GameModeSelector gameMode={gameMode} onChange={handleGameModeChange} />
+</div>
 
       <LevelSelector
         levels={levels}
