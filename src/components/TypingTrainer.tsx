@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { levels } from "@/src/data/levels";
 import { passages } from "@/src/data/passages";
 import { getBestScore, saveBestScore } from "@/src/lib/storage";
@@ -14,6 +14,10 @@ import { ProgressBar } from "@/src/components/typing/ProgressBar";
 import { WordsPanel } from "@/src/components/typing/WordsPanel";
 import { TypingInput } from "@/src/components/typing/TypingInput";
 import { CompleteModal } from "@/src/components/typing/CompleteModal";
+import {
+  GameModeSelector,
+  type GameMode,
+} from "@/src/components/typing/GameModeSelector";
 
 type RouteType = "level" | "random" | "daily";
 
@@ -35,6 +39,10 @@ export default function TypingTrainer() {
   const [customTitle, setCustomTitle] = useState<string | null>(null);
   const [customCategory, setCustomCategory] = useState<string | null>(null);
   const [routeType, setRouteType] = useState<RouteType>("level");
+  const [gameMode, setGameMode] = useState<GameMode>("free");
+
+  const currentWordRef = useRef(0);
+  const finishedRef = useRef(false);
 
   const level = levels[levelIndex];
 
@@ -55,15 +63,11 @@ export default function TypingTrainer() {
 
   const progressPercent = Math.round((currentWord / words.length) * 100);
 
-  useEffect(() => {
-    if (!started || completed) return;
+  const timeLimit = gameMode === "60s" ? 60 : gameMode === "120s" ? 120 : null;
 
-    const interval = setInterval(() => {
-      setSeconds((prev) => prev + 1);
-    }, 1000);
+  const timeLeft = timeLimit ? Math.max(timeLimit - seconds, 0) : null;
 
-    return () => clearInterval(interval);
-  }, [started, completed]);
+  const isTimeAttack = Boolean(timeLimit);
 
   const syncLocalProgress = (routeName: string) => {
     const progress = getProgress();
@@ -74,34 +78,64 @@ export default function TypingTrainer() {
     setStreak(progress.streak);
   };
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setInput("");
     setCurrentWord(0);
+    currentWordRef.current = 0;
     setErrors(0);
     setSeconds(0);
     setStarted(false);
     setShowCompleteModal(false);
-  };
+    finishedRef.current = false;
+  }, []);
 
-  const finishLevel = (nextCorrectWords: number) => {
-    const finalWpm =
-      seconds > 0 ? Math.round((nextCorrectWords / seconds) * 60) : 0;
+  const finishSession = useCallback(
+    (nextCorrectWords = currentWordRef.current) => {
+      if (finishedRef.current) return;
 
-    const scoreKey = customTitle ?? level.name;
-    const currentBest = getBestScore(scoreKey);
+      finishedRef.current = true;
 
-    if (finalWpm > currentBest) {
-      saveBestScore(scoreKey, finalWpm);
-      setBestScore(finalWpm);
-    }
+      const finalWpm =
+        seconds > 0 ? Math.round((nextCorrectWords / seconds) * 60) : 0;
 
-    const progress = addRouteXP(50);
+      const scoreKey = customTitle ?? level.name;
+      const currentBest = getBestScore(scoreKey);
 
-    setXp(progress.xp);
-    setCompletedRoutes(progress.completedRoutes);
-    setStreak(progress.streak);
-    setShowCompleteModal(true);
-  };
+      if (finalWpm > currentBest) {
+        saveBestScore(scoreKey, finalWpm);
+        setBestScore(finalWpm);
+      }
+
+      const progress = addRouteXP(isTimeAttack ? 75 : 50);
+
+      setXp(progress.xp);
+      setCompletedRoutes(progress.completedRoutes);
+      setStreak(progress.streak);
+      setStarted(false);
+      setShowCompleteModal(true);
+    },
+    [seconds, customTitle, level.name, isTimeAttack],
+  );
+
+  useEffect(() => {
+    if (!started || showCompleteModal) return;
+
+    const interval = setInterval(() => {
+      setSeconds((prev) => {
+        const next = prev + 1;
+
+        if (timeLimit && next >= timeLimit && !finishedRef.current) {
+          window.setTimeout(() => {
+            finishSession(currentWordRef.current);
+          }, 0);
+        }
+
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [started, showCompleteModal, timeLimit, finishSession]);
 
   const handleLevelChange = (index: number) => {
     const nextLevel = levels[index];
@@ -115,8 +149,14 @@ export default function TypingTrainer() {
     reset();
   };
 
+  const handleGameModeChange = (mode: GameMode) => {
+    setGameMode(mode);
+    reset();
+  };
+
   const handleChange = (value: string) => {
-    if (completed) return;
+    if (showCompleteModal) return;
+    if (completed && !isTimeAttack) return;
 
     if (!started) {
       setStarted(true);
@@ -133,10 +173,18 @@ export default function TypingTrainer() {
     if (typedWord === expectedWord) {
       const nextWordIndex = currentWord + 1;
 
-      setCurrentWord(nextWordIndex);
-
       if (nextWordIndex >= words.length) {
-        finishLevel(nextWordIndex);
+        if (isTimeAttack) {
+          setCurrentWord(0);
+          currentWordRef.current = 0;
+        } else {
+          setCurrentWord(nextWordIndex);
+          currentWordRef.current = nextWordIndex;
+          finishSession(nextWordIndex);
+        }
+      } else {
+        setCurrentWord(nextWordIndex);
+        currentWordRef.current = nextWordIndex;
       }
     } else {
       setErrors((prev) => prev + 1);
@@ -174,6 +222,8 @@ export default function TypingTrainer() {
         onDailyRoute={generateDailyRoute}
       />
 
+      <GameModeSelector gameMode={gameMode} onChange={handleGameModeChange} />
+
       <LevelSelector
         levels={levels}
         activeLevelIndex={levelIndex}
@@ -181,7 +231,16 @@ export default function TypingTrainer() {
         onLevelChange={handleLevelChange}
       />
 
-      <RouteHeader title={activeTitle} category={activeCategory} />
+      <RouteHeader
+        title={
+          isTimeAttack && timeLeft !== null
+            ? `${activeTitle} / ${timeLeft}s left`
+            : activeTitle
+        }
+        category={
+          isTimeAttack ? `${activeCategory} / TIME ATTACK` : activeCategory
+        }
+      />
 
       <StatsBar
         seconds={seconds}
@@ -201,7 +260,7 @@ export default function TypingTrainer() {
         onChange={handleChange}
       />
 
-      {showCompleteModal && (
+      {showCompleteModal ? (
         <CompleteModal
           routeType={routeType}
           accuracy={accuracy}
@@ -213,7 +272,7 @@ export default function TypingTrainer() {
           progressPercent={progressPercent}
           onReset={reset}
         />
-      )}
+      ) : null}
     </section>
   );
 }

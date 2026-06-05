@@ -16,7 +16,7 @@ export function StatsBar({
   bestScore,
 }: StatsBarProps) {
   return (
-    <div className="mb-8 grid grid-cols-2 gap-3 text-sm sm:grid-cols-5 sm:text-base">
+    <div className="mb-6 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
       <div className="border border-green-400/40 p-3">
         ⏱ {formatTime(seconds)}
       </div>
